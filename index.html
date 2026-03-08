@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAZOR | Магазин техніки</title>
+    <style>
+        @font-face {
+            font-family: 'Warface';
+            /* Шлях до шрифту змінено на img/ */
+            src: url('img/Warface.ttf') format('truetype');
+            font-weight: normal; font-style: normal; font-display: swap;
+        }
+
+        :root {
+            --blue: #0056ff; 
+            --black: #050505; 
+            --card-bg: #121212;
+            --white: #ffffff; 
+            --gray: #a0a0a0; 
+            --shadow: 0 0 30px rgba(0, 86, 255, 0.4);
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Warface', sans-serif !important; }
+
+        body { background: var(--black); color: var(--white); min-height: 100vh; overflow-x: hidden; scroll-behavior: smooth; }
+
+        header {
+            background: rgba(0, 0, 0, 0.9); height: auto; min-height: 70px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 5%; position: sticky; top: 0; z-index: 1000;
+            border-bottom: 1px solid #222; backdrop-filter: blur(15px);
+            flex-wrap: wrap;
+        }
+
+        .logo { color: var(--blue); font-size: 2rem; text-decoration: none; text-shadow: 0 0 10px rgba(0, 86, 255, 0.5); font-weight: bold; cursor: pointer; text-transform: uppercase; }
+
+        nav { display: flex; gap: 15px; }
+        nav a { color: var(--gray); text-decoration: none; cursor: pointer; font-size: 12px; text-transform: uppercase; transition: 0.3s; }
+        nav a:hover { color: var(--blue); }
+
+        .hero-banner {
+            width: 100%; min-height: 250px; background: linear-gradient(45deg, #050505, #111, #001a4d);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; border-bottom: 1px solid var(--blue); margin-bottom: 20px; padding: 20px;
+        }
+        .hero-banner h1 { font-size: clamp(1.8rem, 5vw, 3rem); color: var(--blue); text-shadow: 0 0 20px rgba(0, 86, 255, 0.6); margin-bottom: 10px; }
+
+        .search-bar { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .search-bar input { 
+            width: 100%; padding: 15px 25px; border-radius: 50px; 
+            background: #111; border: 1px solid #333; color: white; outline: none; border-bottom: 2px solid var(--blue); font-size: 16px;
+        }
+
+        .categories { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+        .cat-btn { background: #1a1a1a; border: 1px solid #333; color: var(--gray); padding: 10px 20px; border-radius: 20px; cursor: pointer; text-transform: uppercase; font-size: 11px; transition: 0.3s; white-space: nowrap; }
+        .cat-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+
+        .card { background: var(--card-bg); border-radius: 15px; overflow: hidden; border: 1px solid #222; cursor: pointer; transition: var(--transition); opacity: 0; transform: translateY(30px); }
+        .card.show { opacity: 1; transform: translateY(0); }
+        .card:hover { border-color: var(--blue); box-shadow: var(--shadow); }
+
+        .slider-container { width: 100%; height: 230px; overflow: hidden; }
+        .slide { width: 100%; height: 100%; background-size: cover; background-position: center; transition: 0.5s; }
+
+        .card-info { padding: 20px; }
+        .price { font-size: 22px; color: var(--blue); margin: 10px 0; font-weight: bold; }
+        .btn { background: var(--blue); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; text-transform: uppercase; transition: 0.3s; }
+
+        /* MODAL */
+        .modal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); 
+            display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(10px);
+        }
+        .modal-content { 
+            background: var(--card-bg); border-radius: 20px; border: 1px solid #333; position: relative;
+            transform: scale(0.7); opacity: 0; transition: 0.4s;
+            display: flex; width: 95%; max-width: 1100px; max-height: 90vh; overflow: hidden;
+        }
+        .modal.active { display: flex; }
+        .modal.active .modal-content { transform: scale(1); opacity: 1; }
+
+        .modal-left { width: 60%; background: #000; position: relative; display: flex; align-items: center; }
+        .modal-right { width: 40%; padding: 30px; overflow-y: auto; border-left: 1px solid #222; }
+
+        .close-btn { position: absolute; right: 15px; top: 15px; color: #fff; font-size: 24px; cursor: pointer; z-index: 100; background: rgba(0,0,0,0.5); width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+
+        #modal-img-view { width: 100%; height: 500px; background-size: contain; background-position: center; background-repeat: no-repeat; }
+
+        .nav-modal { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.3); border: none; color: white; font-size: 30px; cursor: pointer; padding: 10px; z-index: 10; transition: 0.3s; }
+        .nav-modal:hover { background: var(--blue); }
+        .prev { left: 0; border-radius: 0 5px 5px 0; }
+        .next { right: 0; border-radius: 5px 0 0 5px; }
+
+        @media (max-width: 850px) {
+            header { flex-direction: column; gap: 10px; }
+            .modal-content { flex-direction: column; overflow-y: auto; }
+            .modal-left { width: 100%; height: 350px; flex-shrink: 0; }
+            .modal-right { width: 100%; border-left: none; border-top: 1px solid #222; padding: 20px; overflow: visible; }
+            #modal-img-view { height: 350px; }
+            .nav-modal { font-size: 24px; }
+        }
+
+        .btn-tg { background: #0088cc; animation: pulse 2s infinite; display: block; text-decoration: none; text-align: center; margin-top: 10px; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0,136,204,0.5); } 70% { box-shadow: 0 0 0 15px rgba(0,136,204,0); } 100% { box-shadow: 0 0 0 0 rgba(0,136,204,0); } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo" onclick="location.reload()">RAZOR</div>
+    <nav>
+        <a onclick="showCatalog()">Каталог</a>
+        <a onclick="showAbout()">Про нас</a>
+        <a onclick="toggleSchedule(true)">Робочий графік</a>
+    </nav>
+</header>
+
+<div id="page-content">
+    <div class="hero-banner">
+        <h1>RAZOR TECHNOLOGY</h1>
+        <p style="color: var(--gray); text-transform: uppercase; letter-spacing: 2px;">Найкраща техніка з Європи та США</p>
+    </div>
+
+    <div id="catalog-controls">
+        <div class="search-bar"><input type="text" id="search-input" placeholder="Пошук моделі..." oninput="filterProducts()"></div>
+        <div class="categories">
+            <button class="cat-btn active" id="btn-all" onclick="setCategory('all')">Все</button>
+            <button class="cat-btn" id="btn-laptop" onclick="setCategory('laptop')">Ноутбуки</button>
+        </div>
+    </div>
+
+    <main class="container" id="main-content"></main>
+</div>
+
+<div class="modal" id="schedule-modal" onclick="if(event.target == this) toggleSchedule(false)">
+    <div class="modal-content" style="max-width: 400px; padding: 40px; text-align: center; display: block;">
+        <span class="close-btn" onclick="toggleSchedule(false)">✕</span>
+        <h2 style="color:var(--blue); margin-bottom: 20px;">ГРАФІК РОБОТИ</h2>
+        <p style="font-size: 18px; line-height: 2;">
+            Пн-Пт: 10:00 - 20:00<br>
+            Сб: 11:00 - 18:00<br>
+            <span style="color: #ff4444;">Нд: Вихідний</span>
+        </p>
+    </div>
+</div>
+
+<div class="modal" id="item-modal" onclick="if(event.target == this) closeModal()">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">✕</span>
+        <div class="modal-left">
+            <button class="nav-modal prev" onclick="changeModalImg(-1)">❮</button>
+            <div id="modal-img-view"></div>
+            <button class="nav-modal next" onclick="changeModalImg(1)">❯</button>
+        </div>
+        <div class="modal-right">
+            <h2 id="modal-title" style="margin-bottom: 10px;"></h2>
+            <div class="price" id="modal-price"></div>
+            <p id="modal-desc" style="color:var(--gray); font-size: 14px; line-height: 1.6; white-space: pre-line; margin-bottom: 20px;"></p>
+            <a id="tg-link" href="#" target="_blank" class="btn btn-tg">Замовити в Telegram</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const products = [
+        { 
+            id: 1, name: "Lenovo ThinkPad T490s", price: 9600, category: "laptop", 
+            desc: "Стильний та надійний бізнес-ноутбук для щоденної роботи.\n\n🛠️ Обслужений, замінена термопаста.\n☑️ Гарантія 6 місяців.\n🔐 Windows 11 pro (ліцензія)\n\n💻 Процесор - Intel Core i5-8265U\n⚙️ ОЗП 8Gb\n📀 Ssd 256Gb nVmE\n🎥 Intel UHD 620\n🖥️ 14' Full HD IPS матовий\n🔋 Акумулятор: до 6 годин.", 
+            imgs: ["001.jpg", "002.jpg", "003.jpg", "004.jpg", "005.jpg", "006.jpg"] 
+        },
+        { 
+            id: 2, name: "Dell Latitude 5400", price: 9500, category: "laptop", 
+            desc: "Надійний партнер для роботи та бізнесу.\n\n🛠️ Обслужений, почищений від пилу, замінена термопаста.\n☑️ Гарантія 6 місяців.\n🔐 Windows 11 pro (ліцензія)\n\n💻 Процесор - Intel Core i5-8365U\n⚙️ Оперативна памʼять 8Gb\n📀 Ssd диск 256Gb nVmE\n🎥 Intel UHD 620\n🖥️ Екран 14' FHD IPS\n🔋 Акумулятор : до 6 годин роботи.", 
+            imgs: ["101.jpg", "102.jpg", "103.jpg", "104.jpg", "105.jpg", "106.jpg"] 
+        },
+        { 
+            id: 3, name: "HP EliteBook 840 G5 — преміум", price: 9500, category: "laptop", 
+            desc: "HP EliteBook 840 G5 — бізнес-ноутбук у металевому корпусі.\n\n🛠️ Обслужений, замінена термопаста.\n☑️ Гарантія 6 місяців.\n🔐 Windows 11 pro (ліцензія)\n\n💻 Процесор - Intel Core i5-8350U\n⚙️ ОЗП 8Gb\n📀 Ssd 256Gb nVmE\n🖥️ Екран 14' Full HD IPS матовий.\n🔋 Акумулятор : до 5 годин роботи.", 
+            imgs: ["201.jpg", "202.jpg", "203.jpg", "204.jpg", "205.jpg", "206.jpg"] 
+        },
+        { 
+            id: 4, name: "HP EliteBook G5", price: 8700, category: "laptop", 
+            desc: "HP EliteBook G5 — надійний бізнес-ноутбук у стриманому преміальному металевому корпусі.\n\n🛠️ Обслужений, замінена термопаста.\n☑️ Гарантія 6 місяців.\n🔐 Windows 11 pro (ліцензія)\n\n💻 i5-8350U\n⚙️ 8Gb RAM\n📀 256Gb Ssd\n🎥 Intel UHD 620\n🖥️ 14' FHD IPS\n🔋 Акумулятор: до 5 годин.", 
+            imgs: ["301.jpg", "302.jpg", "303.jpg", "304.jpg", "305.jpg", "306.jpg"] 
+        },
+        { 
+            id: 5, name: "HP ZBook 14u G5", price: 11000, category: "laptop", 
+            desc: "HP ZBook 14u G5 — тонкий та надійний ноутбук преміум-класу.\n\n🛠️ Обслужений, замінена термопаста.\n☑️ Гарантія 6 місяців.\n🔐 Windows 11 pro (ліцензія)\n\n💻 i5-8250U\n⚙️ 8Gb RAM\n📀 256Gb nVmE\n🎥 WX 3100 2Gb\n🖥️ 14' Full HD IPS\n🔋 Акумулятор: до 5 годин.", 
+            imgs: ["401.jpg", "402.jpg", "403.jpg", "404.jpg", "405.jpg", "406.jpg"] 
+        },
+        { 
+            id: 6, name: "Dell Latitude 7320", price: 11000, category: "laptop", 
+            desc: "Dell Latitude 7320 — стиль та карбоновий корпус.\n\n🛠️ Обслужений, замінена термопаста.\n☑️ Гарантія 6 місяців.\n🔐 Windows 11 pro (ліцензія)\n\n💻 i5-1145G7\n⚙️ 8Gb RAM\n📀 256Gb Ssd\n🎥 Intel Iris Xe\n🖥️ 13,3' FHD IPS\n🔋 Акумулятор: до 5 годин.", 
+            imgs: ["501.jpg", "502.jpg", "503.jpg", "504.jpg", "505.jpg", "506.jpg"] 
+        },
+        { 
+            id: 7, name: "HP ZBook 14u G6", price: 10500, category: "laptop", 
+            desc: "HP ZBook 14u G6 — преміум-клас на Core i7.\n\n🛠️ Обслужений, замінена термопаста.\n☑️ Гарантія 6 місяців.\n🔐 Windows 11 pro (ліцензія)\n\n💻 Core i7-8565U\n⚙️ 8Gb RAM\n📀 256Gb Ssd\n🎥 Intel UHD 620\n🖥️ 14' FHD IPS\n🔋 Акумулятор: до 5 годин.", 
+            imgs: ["601.jpg", "602.jpg", "603.jpg", "604.jpg", "605.jpg", "606.jpg"] 
+        },
+        { 
+            id: 8, name: "Lenovo ThinkPad T460", price: 7200, category: "laptop", 
+            desc: "Lenovo ThinkPad T460 — бізнес ноутбук.\n\n🛠️ Обслужений, замінена термопаста.\n☑️ Гарантія 6 місяців.\n🔐 Windows 11 pro (ліцензія)\n\n💻 i5-6200U\n⚙️ 8Gb RAM\n📀 256Gb Ssd\n🎥 Intel HD 520\n🖥️ 14' FHD IPS\n🔋 Акумулятор: до 4 годин.", 
+            imgs: ["701.jpg", "702.jpg", "703.jpg", "704.jpg", "705.jpg", "706.jpg"] 
+        },
+        { 
+            id: 9, name: "Dell Latitude 7490 (Touch)", price: 11000, category: "laptop", 
+            desc: "Dell Latitude 7490 — бізнес-ноутбук із сенсорним екраном.\n\n🛠️ Обслужений, замінена термопаста.\n☑️ Гарантія 6 місяців.\n🔐 Windows 11 pro (ліцензія)\n\n💻 i7-8650U\n⚙️ 8Gb RAM\n📀 256Gb Ssd\n🎥 Intel UHD 620\n🖥️ 14' FHD IPS Touch\n🔋 Акумулятор: до 7 годин.", 
+            imgs: ["801.jpg", "802.jpg", "803.jpg", "804.jpg", "805.jpg", "806.jpg"] 
+        },
+        { 
+            id: 10, name: "HP ProBook 445 G7", price: 12000, category: "laptop", 
+            desc: "Металевий корпус та потужний Ryzen 7.\n\n🛠️ Обслужений, замінена термопаста.\n☑️ Гарантія 6 місяців.\n🔐 Windows 11 pro (ліцензія)\n\n💻 Ryzen 7 4700U\n⚙️ 8Gb RAM\n📀 256Gb Ssd\n🎥 Rx Vega 7\n🖥️ 14' FHD IPS\n🔋 Акумулятор: до 5 годин.", 
+            imgs: ["901.jpg", "902.jpg", "903.jpg", "904.jpg", "905.jpg", "906.jpg"] 
+        },
+        { 
+            id: 11, name: "DELL Precision 5560 (Ігровий)", price: 24000, category: "laptop", 
+            desc: "Потужний ноут для ігор та графіки.\n\n🛠️ Обслужений, замінена термопаста.\n☑️ Гарантія 6 місяців.\n🔐 Windows 11 pro (ліцензія)\n\n💻 i7-11850H (8 ядер)\n⚙️ 16Gb RAM\n📀 512Gb Ssd\n🎥 RTX A2000 4Gb\n🖥️ 15,6' FHD+ IPS\n🔋 Акумулятор: 3+ години.", 
+            imgs: ["110.jpg", "111.jpg", "112.jpg", "113.jpg", "114.jpg"] 
+        }
+    ];
+
+    let currentCat = 'all';
+    let currentImgIdx = 0;
+    let currentModalImgs = [];
+
+    function renderProducts() {
+        const main = document.getElementById('main-content');
+        const search = document.getElementById('search-input').value.toLowerCase();
+        
+        const filtered = products.filter(p => {
+            return (currentCat === 'all' || p.category === currentCat) && p.name.toLowerCase().includes(search);
+        });
+
+        /* Змінено шлях зображення на img/ у рядку нижче */
+        main.innerHTML = `<div class="grid">${filtered.map(p => `
+            <div class="card" onclick="openDetails(${p.id})">
+                <div class="slider-container"><div class="slide" style="background-image:url('img/${p.imgs[0]}')"></div></div>
+                <div class="card-info">
+                    <h3>${p.name}</h3>
+                    <div class="price">${p.price.toLocaleString()} грн.</div>
+                    <button class="btn">Докладніше</button>
+                </div>
+            </div>
+        `).join('')}</div>`;
+
+        setTimeout(() => {
+            document.querySelectorAll('.card').forEach((c, i) => {
+                setTimeout(() => c.classList.add('show'), i * 100);
+            });
+        }, 50);
+    }
+
+    function setCategory(cat) {
+        currentCat = cat;
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + cat).classList.add('active');
+        renderProducts();
+    }
+
+    function filterProducts() { renderProducts(); }
+
+    function showCatalog() {
+        document.getElementById('catalog-controls').style.display = 'block';
+        renderProducts();
+    }
+
+    function showAbout() {
+        document.getElementById('catalog-controls').style.display = 'none';
+        const main = document.getElementById('main-content');
+        main.innerHTML = `
+            <div style="max-width:800px; margin:40px auto; animation: fadeIn 0.8s ease; padding: 0 15px;">
+                <h2 style="color:var(--blue); margin-bottom:30px; text-align:center;">ПРО МАГАЗИН RAZOR</h2>
+                <div style="background:#1a1a1a; padding:30px; border-radius:20px; border:1px solid #333; line-height:1.8;">
+                    <p>RAZOR — це магазин якісної техніки з Європи та США. Ми відбираємо найкращі бізнес-моделі (ThinkPad, Latitude, EliteBook), проводимо повне ТО та надаємо гарантію.</p><br>
+                    <p>Детальна інформація @LaPtoPs_UA8 телеграм</p>
+                    <p>✅ Гарантія 6 місяців<br>✅ Тільки перевірені бренди<br>✅ Накладений платіж без передплат</p>
+                    <button class="btn" style="margin-top:30px; width:200px;" onclick="setCategory('all')">В КАТАЛОГ</button>
+                </div>
+            </div>`;
+    }
+
+    function toggleSchedule(show) {
+        const m = document.getElementById('schedule-modal');
+        if(show) { m.style.display='flex'; setTimeout(()=>m.classList.add('active'),10); }
+        else { m.classList.remove('active'); setTimeout(()=>m.style.display='none',400); }
+    }
+
+    function openDetails(id) {
+        const p = products.find(x => x.id === id);
+        currentModalImgs = p.imgs; currentImgIdx = 0;
+        document.getElementById('modal-title').innerText = p.name;
+        document.getElementById('modal-price').innerText = p.price.toLocaleString() + " грн.";
+        document.getElementById('modal-desc').innerText = p.desc;
+        document.getElementById('tg-link').href = `https://t.me/LaPtoPs_UA8?text=Цікавить: ${p.name}`;
+        updateModalImg();
+        const m = document.getElementById('item-modal');
+        m.style.display='flex'; setTimeout(()=>m.classList.add('active'),10);
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        const m = document.getElementById('item-modal');
+        m.classList.remove('active');
+        setTimeout(()=> { m.style.display='none'; document.body.style.overflow='auto'; }, 400);
+    }
+
+    /* Оновлено шлях зображення на img/ для модального вікна */
+    function updateModalImg() { 
+        document.getElementById('modal-img-view').style.backgroundImage = `url('img/${currentModalImgs[currentImgIdx]}')`; 
+    }
+    
+    function changeModalImg(dir) { currentImgIdx = (currentImgIdx + dir + currentModalImgs.length) % currentModalImgs.length; updateModalImg(); }
+
+    window.onload = renderProducts;
+</script>
+</body>
+</html>
