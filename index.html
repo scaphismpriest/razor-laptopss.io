@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RAZOR | Магазин техніки</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
     <style>
         @font-face {
             font-family: 'Warface';
-            /* Шлях до шрифту змінено на img/ */
             src: url('img/Warface.ttf') format('truetype');
             font-weight: normal; font-style: normal; font-display: swap;
         }
@@ -71,16 +73,8 @@
         .price { font-size: 22px; color: var(--blue); margin: 10px 0; font-weight: bold; }
         .btn { background: var(--blue); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; text-transform: uppercase; transition: 0.3s; }
 
-        /* MODAL */
-        .modal { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); 
-            display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(10px);
-        }
-        .modal-content { 
-            background: var(--card-bg); border-radius: 20px; border: 1px solid #333; position: relative;
-            transform: scale(0.7); opacity: 0; transition: 0.4s;
-            display: flex; width: 95%; max-width: 1100px; max-height: 90vh; overflow: hidden;
-        }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(10px); }
+        .modal-content { background: var(--card-bg); border-radius: 20px; border: 1px solid #333; position: relative; transform: scale(0.7); opacity: 0; transition: 0.4s; display: flex; width: 95%; max-width: 1100px; max-height: 90vh; overflow: hidden; }
         .modal.active { display: flex; }
         .modal.active .modal-content { transform: scale(1); opacity: 1; }
 
@@ -161,12 +155,17 @@
             <h2 id="modal-title" style="margin-bottom: 10px;"></h2>
             <div class="price" id="modal-price"></div>
             <p id="modal-desc" style="color:var(--gray); font-size: 14px; line-height: 1.6; white-space: pre-line; margin-bottom: 20px;"></p>
-            <a id="tg-link" href="#" target="_blank" class="btn btn-tg">Замовити в Telegram</a>
+            <button id="buy-btn" class="btn btn-tg">Замовити в Telegram</button>
         </div>
     </div>
 </div>
 
 <script>
+    // Инициализация Telegram WebApp
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
     const products = [
         { 
             id: 1, name: "Lenovo ThinkPad T490s", price: 9600, category: "laptop", 
@@ -232,12 +231,8 @@
     function renderProducts() {
         const main = document.getElementById('main-content');
         const search = document.getElementById('search-input').value.toLowerCase();
-        
-        const filtered = products.filter(p => {
-            return (currentCat === 'all' || p.category === currentCat) && p.name.toLowerCase().includes(search);
-        });
+        const filtered = products.filter(p => (currentCat === 'all' || p.category === currentCat) && p.name.toLowerCase().includes(search));
 
-        /* Змінено шлях зображення на img/ у рядку нижче */
         main.innerHTML = `<div class="grid">${filtered.map(p => `
             <div class="card" onclick="openDetails(${p.id})">
                 <div class="slider-container"><div class="slide" style="background-image:url('img/${p.imgs[0]}')"></div></div>
@@ -251,44 +246,9 @@
 
         setTimeout(() => {
             document.querySelectorAll('.card').forEach((c, i) => {
-                setTimeout(() => c.classList.add('show'), i * 100);
+                setTimeout(() => c.classList.add('show'), i * 50);
             });
         }, 50);
-    }
-
-    function setCategory(cat) {
-        currentCat = cat;
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-' + cat).classList.add('active');
-        renderProducts();
-    }
-
-    function filterProducts() { renderProducts(); }
-
-    function showCatalog() {
-        document.getElementById('catalog-controls').style.display = 'block';
-        renderProducts();
-    }
-
-    function showAbout() {
-        document.getElementById('catalog-controls').style.display = 'none';
-        const main = document.getElementById('main-content');
-        main.innerHTML = `
-            <div style="max-width:800px; margin:40px auto; animation: fadeIn 0.8s ease; padding: 0 15px;">
-                <h2 style="color:var(--blue); margin-bottom:30px; text-align:center;">ПРО МАГАЗИН RAZOR</h2>
-                <div style="background:#1a1a1a; padding:30px; border-radius:20px; border:1px solid #333; line-height:1.8;">
-                    <p>RAZOR — це магазин якісної техніки з Європи та США. Ми відбираємо найкращі бізнес-моделі (ThinkPad, Latitude, EliteBook), проводимо повне ТО та надаємо гарантію.</p><br>
-                    <p>Детальна інформація @LaPtoPs_UA8 телеграм</p>
-                    <p>✅ Гарантія 6 місяців<br>✅ Тільки перевірені бренди<br>✅ Накладений платіж без передплат</p>
-                    <button class="btn" style="margin-top:30px; width:200px;" onclick="setCategory('all')">В КАТАЛОГ</button>
-                </div>
-            </div>`;
-    }
-
-    function toggleSchedule(show) {
-        const m = document.getElementById('schedule-modal');
-        if(show) { m.style.display='flex'; setTimeout(()=>m.classList.add('active'),10); }
-        else { m.classList.remove('active'); setTimeout(()=>m.style.display='none',400); }
     }
 
     function openDetails(id) {
@@ -297,7 +257,12 @@
         document.getElementById('modal-title').innerText = p.name;
         document.getElementById('modal-price').innerText = p.price.toLocaleString() + " грн.";
         document.getElementById('modal-desc').innerText = p.desc;
-        document.getElementById('tg-link').href = `https://t.me/LaPtoPs_UA8?text=Цікавить: ${p.name}`;
+        
+        // Кнопка заказа через API Telegram
+        document.getElementById('buy-btn').onclick = () => {
+            tg.openTelegramLink(`https://t.me/LaPtoPs_UA8?text=${encodeURIComponent("Цікавить: " + p.name)}`);
+        };
+
         updateModalImg();
         const m = document.getElementById('item-modal');
         m.style.display='flex'; setTimeout(()=>m.classList.add('active'),10);
@@ -310,12 +275,23 @@
         setTimeout(()=> { m.style.display='none'; document.body.style.overflow='auto'; }, 400);
     }
 
-    /* Оновлено шлях зображення на img/ для модального вікна */
-    function updateModalImg() { 
-        document.getElementById('modal-img-view').style.backgroundImage = `url('img/${currentModalImgs[currentImgIdx]}')`; 
-    }
-    
+    function updateModalImg() { document.getElementById('modal-img-view').style.backgroundImage = `url('img/${currentModalImgs[currentImgIdx]}')`; }
     function changeModalImg(dir) { currentImgIdx = (currentImgIdx + dir + currentModalImgs.length) % currentModalImgs.length; updateModalImg(); }
+    function setCategory(cat) { currentCat = cat; document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-' + cat).classList.add('active'); renderProducts(); }
+    function filterProducts() { renderProducts(); }
+    function showCatalog() { document.getElementById('catalog-controls').style.display = 'block'; renderProducts(); }
+    
+    function showAbout() {
+        document.getElementById('catalog-controls').style.display = 'none';
+        const main = document.getElementById('main-content');
+        main.innerHTML = `<div style="max-width:800px; margin:40px auto; animation: fadeIn 0.8s ease; padding: 0 15px;"><h2 style="color:var(--blue); margin-bottom:30px; text-align:center;">ПРО МАГАЗИН RAZOR</h2><div style="background:#1a1a1a; padding:30px; border-radius:20px; border:1px solid #333; line-height:1.8;"><p>RAZOR — це магазин якісної техніки з Європи та США. Ми відбираємо найкращі бізнес-моделі (ThinkPad, Latitude, EliteBook), проводимо повне ТО та надаємо гарантію.</p><br><p>Детальна інформація @LaPtoPs_UA8 телеграм</p><p>✅ Гарантія 6 місяців<br>✅ Тільки перевірені бренди<br>✅ Накладений платіж без передплат</p><button class="btn" style="margin-top:30px; width:200px;" onclick="setCategory('all')">В КАТАЛОГ</button></div></div>`;
+    }
+
+    function toggleSchedule(show) {
+        const m = document.getElementById('schedule-modal');
+        if(show) { m.style.display='flex'; setTimeout(()=>m.classList.add('active'),10); }
+        else { m.classList.remove('active'); setTimeout(()=>m.style.display='none',400); }
+    }
 
     window.onload = renderProducts;
 </script>
