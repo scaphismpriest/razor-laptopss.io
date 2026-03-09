@@ -161,7 +161,6 @@
 </div>
 
 <script>
-    // Инициализация Telegram WebApp
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
@@ -257,8 +256,7 @@
         document.getElementById('modal-title').innerText = p.name;
         document.getElementById('modal-price').innerText = p.price.toLocaleString() + " грн.";
         document.getElementById('modal-desc').innerText = p.desc;
-        
-        // Кнопка заказа через API Telegram
+
         document.getElementById('buy-btn').onclick = () => {
             tg.openTelegramLink(`https://t.me/LaPtoPs_UA8?text=${encodeURIComponent("Цікавить: " + p.name)}`);
         };
@@ -284,7 +282,7 @@
     function showAbout() {
         document.getElementById('catalog-controls').style.display = 'none';
         const main = document.getElementById('main-content');
-        main.innerHTML = `<div style="max-width:800px; margin:40px auto; animation: fadeIn 0.8s ease; padding: 0 15px;"><h2 style="color:var(--blue); margin-bottom:30px; text-align:center;">ПРО МАГАЗИН RAZOR</h2><div style="background:#1a1a1a; padding:30px; border-radius:20px; border:1px solid #333; line-height:1.8;"><p>RAZOR — це магазин якісної техніки з Європи та США. Ми відбираємо найкращі бізнес-моделі (ThinkPad, Latitude, EliteBook), проводимо повне ТО та надаємо гарантію.</p><br><p>Детальна інформація @LaPtoPs_UA8 телеграм</p><p>✅ Гарантія 6 місяців<br>✅ Тільки перевірені бренди<br>✅ Накладений платіж без передплат</p><button class="btn" style="margin-top:30px; width:200px;" onclick="setCategory('all')">В КАТАЛОГ</button></div></div>`;
+        main.innerHTML = `<div style="max-width:800px; margin:40px auto; animation: fadeIn 0.8s ease; padding: 0 15px;"><h2 style="color:var(--blue); margin-bottom:30px; text-align:center;">ПРО МАГАЗИН RAZOR</h2><div style="background:#1a1a1a; padding:30px; border-radius:20px; border:1px solid #333; line-height:1.8;"><p>RAZOR — це магазин якісної техніки з Європи та США. Ми відбираємо найкращі бізнес-моделі (ThinkPad, Latitude, EliteBook), проводимо повне ТО та надаємо гарантію.</p><br><p>Детальна інформація @LaPtoPs_UA8 телеграм або @RazorTops_bot</p><p>✅ Гарантія 6 місяців<br>✅ Тільки перевірені бренди<br>✅ Накладений платіж без передплат</p><button class="btn" style="margin-top:30px; width:200px;" onclick="setCategory('all')">В КАТАЛОГ</button></div></div>`;
     }
 
     function toggleSchedule(show) {
@@ -297,3 +295,4 @@
 </script>
 </body>
 </html>
+
