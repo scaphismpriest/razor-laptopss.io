@@ -1,1 +1,1 @@
-# razor-laptopss.io
+# laptopia-laptopss.io
